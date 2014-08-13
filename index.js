@@ -2,6 +2,7 @@ var pg = require('pg.js')
 var copy = require('pg-copy-streams')
 var fs = require('fs')
 var crypto = require('crypto')
+var base64 = require('base64-stream')
 
 module.exports = Blobstore
 
@@ -16,7 +17,7 @@ Blobstore.prototype.createReadStream = function createReadStream(opts) {
   if(!opts.hash) throw new Error('You have to specify a hash key')
   var client = new pg.Client(this.url)
   client.connect()
-  var query = copy.to('COPY (SELECT value FROM blob.blob WHERE key=\'' + opts.hash +'\') TO STDOUT (FORMAT text)')
+  var query = copy.to('COPY (SELECT value FROM blob.text WHERE key=\'' + opts.hash +'\') TO STDOUT (FORMAT text)')
   var stream = client.query(query)
   stream.on('end', function () {
     client.end()
@@ -25,13 +26,13 @@ Blobstore.prototype.createReadStream = function createReadStream(opts) {
     console.error(err)
     client.end()
   })
-  return stream
+  return stream.pipe(base64.decode())
 }
 
 Blobstore.prototype.createWriteStream = function createWriteStream(cb) {
   var client = new pg.Client(this.url)
   client.connect()
-  var query = copy.from('COPY blob.blob (key, value) FROM STDIN')
+  var query = copy.from('COPY blob.text (key, value) FROM STDIN')
   var stream = client.query(query)
   var randomKey = crypto.randomBytes(32).toString('hex')
   stream.write(randomKey)
@@ -40,7 +41,9 @@ Blobstore.prototype.createWriteStream = function createWriteStream(cb) {
     cb({hash: randomKey}) // note this is random right now!
     client.end()
   })
-  return stream
+  var encode = base64.encode()
+  encode.pipe(stream)
+  return encode
 }
 //example
 // var test = createWriteStream(function (data) {

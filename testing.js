@@ -3,7 +3,7 @@ var url = 'postgresql://localhost:5432/blob'
 var store = new blob({url: url})
 
 var fs = require('fs')
-var file = fs.createReadStream('./example.js', {encoding: 'base64'})
+var file = fs.createReadStream('./example.js')
 
 var save = store.createWriteStream(function (data) {
   console.log('saved ' + data.hash)

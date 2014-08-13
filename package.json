@@ -23,9 +23,8 @@
   "homepage": "https://github.com/finnp/postgres-blob-store",
   "dependencies": {
     "JSONStream": "^0.9.0",
-    "pg": "^3.4.1",
+    "base64-stream": "^0.1.2",
     "pg-copy-streams": "^0.2.4",
-    "pg-query-stream": "^0.6.0",
     "pg.js": "^3.4.2"
   }
 }
