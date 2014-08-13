@@ -1,0 +1,31 @@
+{
+  "name": "postgres-blob-store",
+  "version": "0.0.0",
+  "description": "postgres implementation of abstract-blob-store",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/finnp/postgres-blob-store.git"
+  },
+  "keywords": [
+    "blob-store",
+    "blob",
+    "postgres"
+  ],
+  "author": "Finn Pauls",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/finnp/postgres-blob-store/issues"
+  },
+  "homepage": "https://github.com/finnp/postgres-blob-store",
+  "dependencies": {
+    "JSONStream": "^0.9.0",
+    "pg": "^3.4.1",
+    "pg-copy-streams": "^0.2.4",
+    "pg-query-stream": "^0.6.0",
+    "pg.js": "^3.4.2"
+  }
+}
