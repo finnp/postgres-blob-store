@@ -3,6 +3,7 @@ var copy = require('pg-copy-streams')
 var fs = require('fs')
 var crypto = require('crypto')
 var base64 = require('base64-stream')
+var PassThrough = require('stream').PassThrough
 
 module.exports = Blobstore
 
@@ -12,56 +13,51 @@ function Blobstore(opts, cb) {
   this.url = opts.url
   this.schema = opts.schema || 'blob'
   this.table = opts.table || 'blob'
-  
-  // create table in beginning
-  // "CREATE SCHEMA blob; 
-  //CREATE TABLE blob.blob (value text, key VARCHAR(256));"
-  var schema = 'CREATE SCHEMA IF NOT EXISTS ' + this.schema
-  var table = 'CREATE TABLE IF NOT EXISTS ' + this.schema + '.' + this.table + '(value TEXT, key VARCHAR(256))'
-  var self = this
-  
-  var client = new pg.Client(this.url)
-  client.connect(function (err) {
-    if(err) throw err
-    client.query([schema, table].join(';'), function (err, result) {
-      if(err) throw err
-      cb(self)
-      client.end()
-    })
-  })
 }
+
 
 Blobstore.prototype.createReadStream = function createReadStream(opts) {
   if(!opts.hash) throw new Error('You have to specify a hash key')
-  var client = new pg.Client(this.url)
-  client.connect()
-  var query = copy.to('COPY (SELECT value FROM ' + this.schema + '.' + this.table + ' WHERE key=\'' + opts.hash +'\') TO STDOUT (FORMAT text)')
-  var stream = client.query(query)
-  stream.on('end', function () {
-    client.end()
+  var passthrough = new PassThrough
+  var self = this
+  this._createTable(function () {
+    var client = new pg.Client(self.url)
+    client.connect()
+    var query = copy.to('COPY (SELECT value FROM ' + self.schema + '.' + self.table + ' WHERE key=\'' + opts.hash +'\') TO STDOUT (FORMAT text)')
+    var stream = client.query(query)
+    stream.on('end', function () {
+      client.end()
+    })
+    stream.on('error', function (err) {
+      console.error(err)
+      client.end()
+    })
+    stream.pipe(base64.decode()).pipe(passthrough)
   })
-  stream.on('error', function (err) {
-    console.error(err)
-    client.end()
-  })
-  return stream.pipe(base64.decode())
+  
+  return passthrough
 }
 
 Blobstore.prototype.createWriteStream = function createWriteStream(cb) {
-  var client = new pg.Client(this.url)
-  client.connect()
-  var query = copy.from('COPY ' + this.schema + '.' + this.table + ' (key, value) FROM STDIN')
-  var stream = client.query(query)
-  var randomKey = crypto.randomBytes(32).toString('hex')
-  stream.write(randomKey)
-  stream.write('\t')
-  stream.on('end', function () {
-    cb({hash: randomKey}) // note this is random right now!
-    client.end()
+  var passthrough = new PassThrough
+  var self = this
+  this._createTable(function () {
+    var client = new pg.Client(self.url)
+    client.connect()
+    var query = copy.from('COPY ' + self.schema + '.' + self.table + ' (key, value) FROM STDIN')
+    var stream = client.query(query)
+    var randomKey = crypto.randomBytes(32).toString('hex')
+    stream.write(randomKey)
+    stream.write('\t')
+    stream.on('end', function () {
+      cb({hash: randomKey}) // note this is random right now!
+      client.end()
+    })
+    var encode = base64.encode()
+    encode.pipe(stream)
+    passthrough.pipe(encode)
   })
-  var encode = base64.encode()
-  encode.pipe(stream)
-  return encode
+  return passthrough
 }
 
 Blobstore.prototype.exists = function (metadata, cb) {
@@ -70,4 +66,18 @@ Blobstore.prototype.exists = function (metadata, cb) {
 
 Blobstore.prototype.remove = function (metadata, cb) {
   throw new Error('Not implemented')
+}
+
+Blobstore.prototype._createTable = function (done) {
+  var schema = 'CREATE SCHEMA IF NOT EXISTS ' + this.schema
+  var table = 'CREATE TABLE IF NOT EXISTS ' + this.schema + '.' + this.table + '(value TEXT, key VARCHAR(256))'
+  var client = new pg.Client(this.url)
+  client.connect(function (err) {
+    if(err) throw err
+    client.query([schema, table].join(';'), function (err, result) {
+      if(err) throw err
+      done()
+      client.end()
+    })
+  })
 }
