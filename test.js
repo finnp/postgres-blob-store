@@ -1,7 +1,7 @@
 var abstractBlobTests = require('abstract-blob-store/tests')
 var test = require('tape')
 var blob = require('./')
-var dbURL = process.argv[2] || 'postgresql://localhost:5432/test'
+var dbURL = process.env['TEST_DB'] || process.argv[2] || 'postgresql://localhost:5432/test'
 
 var common = {
   setup: function (t, cb) {

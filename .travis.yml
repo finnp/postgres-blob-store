@@ -4,4 +4,6 @@ node_js:
 addons:
   postgresql: '9.3'
 before_script:
-  - psql -c 'create database test;'
+  - psql -c 'create database travis;' -U postgres
+env:
+  - TEST_DB="postgresql://postgres@localhost:5432/travis"
