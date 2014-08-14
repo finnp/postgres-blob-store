@@ -5,7 +5,8 @@ This module tries to be a Postgres implementation of [abstract-blob-store](https
 Right now it doesn't use `bytea`, but is saving the binary files in `text` format as `base64`
 Strings.
 
-It is very experimental, since I have no clue about PostgresSQL.
+It is very experimental, since I have no clue about PostgresSQL. Your can install it 
+with `npm install postgres-blob-store`. Please send pull requests :)
 
 ## Usage
 
