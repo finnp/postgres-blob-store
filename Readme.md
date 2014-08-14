@@ -1,18 +1,18 @@
 # postgres-blob-store
 
-This module tries to be a Postgres implementation of [abstract-blob-store](https://github.com/maxogden/abstract-blob-store).
+This module is a PostgresSQL implementation of [abstract-blob-store](https://github.com/maxogden/abstract-blob-store)
+and passes its tests.
 
 Right now it doesn't use `bytea`, but is saving the binary files in `text` format as `base64`
 Strings.
 
 It is very experimental, since I have no clue about PostgresSQL. Your can install it 
-with `npm install postgres-blob-store`. Please send pull requests :)
+with `npm install postgres-blob-store`.
 
 ## Usage
 
 Right now the usage looks like this, however if possible I would like to get
-rid of the callback structure in the beginning. Note tat the `hash` is only a random
-value right now.
+rid of the callback structure in the beginning.
 
 ```js
 var blob = require('postgres-blob-store')

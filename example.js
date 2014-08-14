@@ -7,7 +7,7 @@ var store = blob({url: url})
 
 var file = fs.createReadStream('./index.js')
 
-var save = store.createWriteStream(function (data) {
+var save = store.createWriteStream({}, function (err, data) {
   console.log('saved ' + data.hash)
   store.exists(data, function (err, exists) {
     if(exists) {

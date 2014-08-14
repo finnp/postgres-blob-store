@@ -4,7 +4,7 @@
   "description": "postgres implementation of abstract-blob-store",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node test.js"
   },
   "repository": {
     "type": "git",
@@ -24,7 +24,7 @@
   "dependencies": {
     "JSONStream": "^0.9.0",
     "base64-stream": "^0.1.2",
-    "length-stream": "^0.1.1",
+    "digest-stream": "^0.2.2",
     "pg-copy-streams": "^0.2.4",
     "pg.js": "^3.4.2"
   },
