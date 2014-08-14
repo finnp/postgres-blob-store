@@ -1,6 +1,7 @@
 # postgres-blob-store
+[![Build Status](https://travis-ci.org/finnp/postgres-blob-store.svg?branch=master)](https://travis-ci.org/finnp/postgres-blob-store)
 
-This module is a PostgresSQL implementation of [abstract-blob-store](https://github.com/maxogden/abstract-blob-store)
+This module is a PostgreSQL implementation of [abstract-blob-store](https://github.com/maxogden/abstract-blob-store)
 and passes its tests.
 
 Right now it doesn't use `bytea`, but is saving the binary files in `text` format as `base64`

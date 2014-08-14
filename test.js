@@ -1,10 +1,11 @@
 var abstractBlobTests = require('abstract-blob-store/tests')
 var test = require('tape')
 var blob = require('./')
+var dbURL = process.argv[2] || 'postgresql://localhost:5432/test'
 
 var common = {
   setup: function (t, cb) {
-    var store = blob({url: 'postgresql://localhost:5432/blob'})
+    var store = blob({url: dbURL})
     cb(null, store)
   },
   teardown: function (t, store, blob, cb) {
