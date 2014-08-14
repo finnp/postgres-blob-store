@@ -11,6 +11,8 @@ function Blobstore(opts) {
   if(!opts.url) throw new Error('Must specify database url')
   this.url = opts.url
   this.table = opts.table || 'blob'
+  // create table in beginning
+  // "CREATE SCHEMA blob; CREATE TABLE blob.blob (value text, key VARCHAR(256));"
 }
 
 Blobstore.prototype.createReadStream = function createReadStream(opts) {
@@ -45,28 +47,11 @@ Blobstore.prototype.createWriteStream = function createWriteStream(cb) {
   encode.pipe(stream)
   return encode
 }
-//example
-// var test = createWriteStream(function (data) {
-//   console.log(data.key)
-// })
-// test.write('myvalues')
-// test.end()
 
 Blobstore.prototype.exists = function (metadata, cb) {
-  // pg.connect(this.url, function (err, client, done) {
-  //   ..
-  // })
+  throw new Error('Not implemented')
 }
 
 Blobstore.prototype.remove = function (metadata, cb) {
-//  pg.connect()
+  throw new Error('Not implemented')
 }
-
-// 
-// pg.connect(opts.url, function(err, client, done) {
-//   client.query('SELECT * FROM your_table', function(err, result) {
-//     done();
-//     if(err) return console.error(err);
-//     console.log(result.rows);
-//   })
-// })
