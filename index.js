@@ -50,7 +50,7 @@ Blobstore.prototype.createWriteStream = function createWriteStream(opts, cb) {
   var self = this
   var size = 0
   var hash = crypto.createHash('sha1')
-  var digested = null
+  var digest = null
   
   this._createTable(function () {
     var client = new pg.Client(self.url)
@@ -58,19 +58,26 @@ Blobstore.prototype.createWriteStream = function createWriteStream(opts, cb) {
     var query = copy.from('COPY ' + self.schema + '.' + self.table + ' (value, key) FROM STDIN')
     var stream = client.query(query)
     stream.on('end', function () {
-      cb(null, {hash: digested, size: size}) // note this is random right now!
+      cb(null, {hash: diges, size: size}) // note this is random right now!
       client.end()
     })
     
+    var encode = base64.encode()
+    
+    // passthrough.pipe(digest('sha1', 'hex', function (digest, length) {
+    //   size = length
+    //   hash = digest
+    // }))
+    
     passthrough
+      .pipe(encode)
       .on('data', function (chunk) {
-        stream.write(chunk.toString('base64'))
-        size += chunk.length
+        stream.write(chunk)
         hash.update(chunk)
       })
       .on('end', function () {
-        digested = hash.digest('hex')
-        stream.write('\t' + digested)
+        digest = hash.digest('hex')
+        stream.write('\t' + digest)
         stream.end()
       })
   })
