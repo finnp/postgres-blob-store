@@ -61,7 +61,27 @@ Blobstore.prototype.createWriteStream = function createWriteStream(cb) {
 }
 
 Blobstore.prototype.exists = function (metadata, cb) {
-  throw new Error('Not implemented')
+  var self = this
+  this._createTable(function () {
+    var client = new pg.Client(self.url)
+    client.connect(function (err) {
+      if(err) {
+        cb(err, false)
+        client.end()
+      } else {
+        client.query('SELECT COUNT(*) FROM ' + self.schema + '.' + self.table + ' WHERE key=\'' + metadata.hash + '\'', function (err, response) {
+          if(err) {
+            cb(err, false)
+            client.end()
+          } else {
+            cb(null, response.rows[0].count !== '0')
+            client.end()
+          }
+        })
+      }
+      
+    })
+  })
 }
 
 Blobstore.prototype.remove = function (metadata, cb) {

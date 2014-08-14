@@ -9,8 +9,16 @@ var file = fs.createReadStream('./index.js')
 
 var save = store.createWriteStream(function (data) {
   console.log('saved ' + data.hash)
-  var readStream = store.createReadStream(data)
-  readStream.pipe(fs.createWriteStream('./index2.js'))
+  store.exists(data, function (err, exists) {
+    if(exists) {
+      console.log('data exists :)')
+      var readStream = store.createReadStream(data)
+      readStream.pipe(fs.createWriteStream('./index2.js'))    
+    } else {
+      console.log('not found')
+    }
+  })
+
 })
 
 file.pipe(save)
