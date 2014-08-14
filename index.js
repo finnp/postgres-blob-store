@@ -4,6 +4,7 @@ var fs = require('fs')
 var crypto = require('crypto')
 var base64 = require('base64-stream')
 var PassThrough = require('stream').PassThrough
+var lengthStream = require('length-stream')
 
 module.exports = Blobstore
 
@@ -20,16 +21,21 @@ Blobstore.prototype.createReadStream = function createReadStream(opts) {
   if(!opts.hash) throw new Error('You have to specify a hash key')
   var passthrough = new PassThrough
   var self = this
+  var empty = true
   this._createTable(function () {
     var client = new pg.Client(self.url)
     client.connect()
     var query = copy.to('COPY (SELECT value FROM ' + self.schema + '.' + self.table + ' WHERE key=\'' + opts.hash +'\') TO STDOUT (FORMAT text)')
     var stream = client.query(query)
+    stream.on('data', function () {
+      empty = false
+    })
     stream.on('end', function () {
+      if(empty) passthrough.emit('error', new Error('does not exist'))
       client.end()
     })
     stream.on('error', function (err) {
-      console.error(err)
+      passthrough.emit('error', err)
       client.end()
     })
     stream.pipe(base64.decode()).pipe(passthrough)
@@ -38,9 +44,13 @@ Blobstore.prototype.createReadStream = function createReadStream(opts) {
   return passthrough
 }
 
-Blobstore.prototype.createWriteStream = function createWriteStream(cb) {
+Blobstore.prototype.createWriteStream = function createWriteStream(opts, cb) {
+  opts = opts || {}
+  cb = cb || function noop() {}
   var passthrough = new PassThrough
   var self = this
+  var size = 0
+  
   this._createTable(function () {
     var client = new pg.Client(self.url)
     client.connect()
@@ -50,12 +60,19 @@ Blobstore.prototype.createWriteStream = function createWriteStream(cb) {
     stream.write(randomKey)
     stream.write('\t')
     stream.on('end', function () {
-      cb({hash: randomKey}) // note this is random right now!
+      cb(null, {hash: randomKey, size: size}) // note this is random right now!
       client.end()
     })
+    
     var encode = base64.encode()
-    encode.pipe(stream)
-    passthrough.pipe(encode)
+    var lengthCount = lengthStream(function (s) {
+      size = s
+    })
+    
+    passthrough
+      .pipe(lengthCount)
+      .pipe(encode)
+      .pipe(stream)
   })
   return passthrough
 }
