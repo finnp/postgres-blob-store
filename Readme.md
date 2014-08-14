@@ -11,8 +11,8 @@ with `npm install postgres-blob-store`. Please send pull requests :)
 ## Usage
 
 Right now the usage looks like this, however if possible I would like to get
-rid of the callback structure in the beginning. Also `exists` and `remove` are not
-implemented yet. The `hash` is also simply a random value right now.
+rid of the callback structure in the beginning. Note tat the `hash` is only a random
+value right now.
 
 ```js
 var blob = require('postgres-blob-store')

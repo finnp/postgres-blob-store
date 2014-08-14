@@ -85,7 +85,27 @@ Blobstore.prototype.exists = function (metadata, cb) {
 }
 
 Blobstore.prototype.remove = function (metadata, cb) {
-  throw new Error('Not implemented')
+  var self = this
+  cb = cb || function noop () {}
+  this._createTable(function () {
+    var client = new pg.Client(self.url)
+    client.connect(function (err) {
+      if(err) {
+        cb(err, false)
+        client.end()
+      } else {
+        client.query('DELETE FROM ' + self.schema + '.' + self.table + ' WHERE key=\'' + metadata.hash + '\'', function (err, response) {
+          if(err) {
+            cb(err, false)
+            client.end()
+          } else {
+            cb(null, true)
+            client.end()
+          }
+        })
+      }
+    })
+  })
 }
 
 Blobstore.prototype._createTable = function (done) {

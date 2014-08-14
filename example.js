@@ -13,7 +13,12 @@ var save = store.createWriteStream(function (data) {
     if(exists) {
       console.log('data exists :)')
       var readStream = store.createReadStream(data)
-      readStream.pipe(fs.createWriteStream('./index2.js'))    
+      readStream.pipe(fs.createWriteStream('./index2.js'))
+      store.remove(data, function (err, deleted) {
+        store.exists(data, function (err, exists) {
+          console.log(exists ? 'was not deleted' : 'was deleted')
+        })
+      }) 
     } else {
       console.log('not found')
     }
