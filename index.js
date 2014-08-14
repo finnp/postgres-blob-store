@@ -6,20 +6,36 @@ var base64 = require('base64-stream')
 
 module.exports = Blobstore
 
-function Blobstore(opts) {
-  if (!(this instanceof Blobstore)) return new Blobstore(opts)
+function Blobstore(opts, cb) {
+  if (!(this instanceof Blobstore)) return new Blobstore(opts, cb)
   if(!opts.url) throw new Error('Must specify database url')
   this.url = opts.url
+  this.schema = opts.schema || 'blob'
   this.table = opts.table || 'blob'
+  
   // create table in beginning
-  // "CREATE SCHEMA blob; CREATE TABLE blob.blob (value text, key VARCHAR(256));"
+  // "CREATE SCHEMA blob; 
+  //CREATE TABLE blob.blob (value text, key VARCHAR(256));"
+  var schema = 'CREATE SCHEMA IF NOT EXISTS ' + this.schema
+  var table = 'CREATE TABLE IF NOT EXISTS ' + this.schema + '.' + this.table + '(value TEXT, key VARCHAR(256))'
+  var self = this
+  
+  var client = new pg.Client(this.url)
+  client.connect(function (err) {
+    if(err) throw err
+    client.query([schema, table].join(';'), function (err, result) {
+      if(err) throw err
+      cb(self)
+      client.end()
+    })
+  })
 }
 
 Blobstore.prototype.createReadStream = function createReadStream(opts) {
   if(!opts.hash) throw new Error('You have to specify a hash key')
   var client = new pg.Client(this.url)
   client.connect()
-  var query = copy.to('COPY (SELECT value FROM blob.text WHERE key=\'' + opts.hash +'\') TO STDOUT (FORMAT text)')
+  var query = copy.to('COPY (SELECT value FROM ' + this.schema + '.' + this.table + ' WHERE key=\'' + opts.hash +'\') TO STDOUT (FORMAT text)')
   var stream = client.query(query)
   stream.on('end', function () {
     client.end()
@@ -34,7 +50,7 @@ Blobstore.prototype.createReadStream = function createReadStream(opts) {
 Blobstore.prototype.createWriteStream = function createWriteStream(cb) {
   var client = new pg.Client(this.url)
   client.connect()
-  var query = copy.from('COPY blob.text (key, value) FROM STDIN')
+  var query = copy.from('COPY ' + this.schema + '.' + this.table + ' (key, value) FROM STDIN')
   var stream = client.query(query)
   var randomKey = crypto.randomBytes(32).toString('hex')
   stream.write(randomKey)
