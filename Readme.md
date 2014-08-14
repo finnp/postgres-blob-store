@@ -24,9 +24,9 @@ var url = 'postgresql://localhost:5432/blob'
 var store = blob({url: url})
 var file = fs.createReadStream('./index.js')
 
-var save = store.createWriteStream(function (data) {
-  console.log('saved ' + data.hash)
-  var readStream = store.createReadStream(data)
+var save = store.createWriteStream(function (err, metadata) {
+  console.log('saved ' + metadata.hash)
+  var readStream = store.createReadStream(metadata)
   readStream.pipe(fs.createWriteStream('./index2.js'))
 })
 

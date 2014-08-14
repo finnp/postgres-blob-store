@@ -4,6 +4,7 @@ var fs = require('fs')
 var crypto = require('crypto')
 var base64 = require('base64-stream')
 var PassThrough = require('stream').PassThrough
+var lengthStream = require('length-stream')
 
 module.exports = Blobstore
 
@@ -58,18 +59,18 @@ Blobstore.prototype.createWriteStream = function createWriteStream(opts, cb) {
     var query = copy.from('COPY ' + self.schema + '.' + self.table + ' (value, key) FROM STDIN')
     var stream = client.query(query)
     stream.on('end', function () {
-      cb(null, {hash: diges, size: size}) // note this is random right now!
+      cb(null, {hash: digest, size: size})
       client.end()
     })
     
     var encode = base64.encode()
     
-    // passthrough.pipe(digest('sha1', 'hex', function (digest, length) {
-    //   size = length
-    //   hash = digest
-    // }))
-    
+    var lengthCount = lengthStream(function (s) {
+      size = s
+    })
+
     passthrough
+      .pipe(lengthCount)
       .pipe(encode)
       .on('data', function (chunk) {
         stream.write(chunk)
