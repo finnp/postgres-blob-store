@@ -1,6 +1,6 @@
 {
   "name": "postgres-blob-store",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "postgres implementation of abstract-blob-store",
   "main": "index.js",
   "scripts": {
