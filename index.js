@@ -18,14 +18,14 @@ function Blobstore(opts, cb) {
 
 
 Blobstore.prototype.createReadStream = function createReadStream(opts) {
-  if(!opts.hash) throw new Error('You have to specify a hash key')
+  if(!opts.key) throw new Error('You have to specify a key')
   var passthrough = new PassThrough
   var self = this
   var empty = true
   this._createTable(function () {
     var client = new pg.Client(self.url)
     client.connect()
-    var query = copy.to('COPY (SELECT value FROM ' + self.schema + '.' + self.table + ' WHERE key=\'' + opts.hash +'\') TO STDOUT (FORMAT text)')
+    var query = copy.to('COPY (SELECT value FROM ' + self.schema + '.' + self.table + ' WHERE key=\'' + opts.key +'\') TO STDOUT (FORMAT text)')
     var stream = client.query(query)
     stream.on('data', function () {
       empty = false
@@ -59,7 +59,7 @@ Blobstore.prototype.createWriteStream = function createWriteStream(opts, cb) {
     var query = copy.from('COPY ' + self.schema + '.' + self.table + ' (value, key) FROM STDIN')
     var stream = client.query(query)
     stream.on('end', function () {
-      cb(null, {hash: digest, size: size})
+      cb(null, {key: digest, size: size})
       client.end()
     })
     
@@ -94,7 +94,7 @@ Blobstore.prototype.exists = function (metadata, cb) {
         cb(err, false)
         client.end()
       } else {
-        client.query('SELECT COUNT(*) FROM ' + self.schema + '.' + self.table + ' WHERE key=\'' + metadata.hash + '\'', function (err, response) {
+        client.query('SELECT COUNT(*) FROM ' + self.schema + '.' + self.table + ' WHERE key=\'' + metadata.key + '\'', function (err, response) {
           if(err) {
             cb(err, false)
             client.end()
@@ -119,7 +119,7 @@ Blobstore.prototype.remove = function (metadata, cb) {
         cb(err, false)
         client.end()
       } else {
-        client.query('DELETE FROM ' + self.schema + '.' + self.table + ' WHERE key=\'' + metadata.hash + '\'', function (err, response) {
+        client.query('DELETE FROM ' + self.schema + '.' + self.table + ' WHERE key=\'' + metadata.key + '\'', function (err, response) {
           if(err) {
             cb(err, false)
             client.end()
