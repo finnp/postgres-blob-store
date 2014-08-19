@@ -25,7 +25,7 @@ var store = blob({url: url})
 var file = fs.createReadStream('./index.js')
 
 var save = store.createWriteStream(function (err, metadata) {
-  console.log('saved ' + metadata.hash)
+  console.log('saved ' + metadata.key)
   var readStream = store.createReadStream(metadata)
   readStream.pipe(fs.createWriteStream('./index2.js'))
 })
