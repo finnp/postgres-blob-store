@@ -1,6 +1,8 @@
 # postgres-blob-store
 [![Build Status](https://travis-ci.org/finnp/postgres-blob-store.svg?branch=master)](https://travis-ci.org/finnp/postgres-blob-store)
 
+[![BlobStore compatible](https://raw.githubusercontent.com/maxogden/abstract-blob-store/master/badge.png)](https://github.com/maxogden/abstract-blob-store)
+
 This module is a PostgreSQL implementation of [abstract-blob-store](https://github.com/maxogden/abstract-blob-store)
 and passes its tests.
 
