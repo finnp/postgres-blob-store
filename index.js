@@ -27,7 +27,7 @@ Blobstore.prototype.createReadStream = function createReadStream(opts) {
   this._createTable(function () {
     var client = new pg.Client(self.url)
     client.connect()
-    var query = copy.to(pgescape('COPY (SELECT value FROM %I WHERE key=%L) TO STDOUT (FORMAT text)', self.schema + '.' + self.table, opts.key))
+    var query = copy.to(pgescape('COPY (SELECT value FROM %I.%I WHERE key=%L) TO STDOUT (FORMAT text)', self.schema, self.table, opts.key))
     var stream = client.query(query)
     stream.on('data', function () {
       empty = false
@@ -59,7 +59,7 @@ Blobstore.prototype.createWriteStream = function createWriteStream(opts, cb) {
   this._createTable(function () {
     var client = new pg.Client(self.url)
     client.connect()
-    var query = copy.from(pgescape('COPY %I (value, key) FROM STDIN', self.schema + '.' + self.table))
+    var query = copy.from(pgescape('COPY %I.%I (value, key) FROM STDIN', self.schema, self.table))
     var stream = client.query(query)
     stream.on('end', function () {
       cb(null, {key: key, size: size})
@@ -103,7 +103,7 @@ Blobstore.prototype.exists = function (opts, cb) {
         cb(err, false)
         client.end()
       } else {
-        client.query(pgescape('SELECT COUNT(*) FROM %I WHERE key=%L', self.schema + '.' + self.table, opts.key), function (err, response) {
+        client.query(pgescape('SELECT COUNT(*) FROM %I.%I WHERE key=%L', self.schema, self.table, opts.key), function (err, response) {
           if(err) {
             cb(err, false)
             client.end()
@@ -128,7 +128,7 @@ Blobstore.prototype.remove = function (metadata, cb) {
         cb(err, false)
         client.end()
       } else {
-        client.query(pgescape('DELETE FROM %I WHERE key=%L', self.schema + '.' + self.table, metadata.key), function (err, response) {
+        client.query(pgescape('DELETE FROM %I.%I WHERE key=%L', self.schema, self.table, metadata.key), function (err, response) {
           if(err) {
             cb(err, false)
             client.end()
