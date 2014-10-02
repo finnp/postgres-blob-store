@@ -26,6 +26,7 @@
     "base64-stream": "^0.1.2",
     "length-stream": "^0.1.1",
     "pg-copy-streams": "^0.2.4",
+    "pg-escape": "0.0.3",
     "pg.js": "^3.4.2"
   },
   "devDependencies": {
