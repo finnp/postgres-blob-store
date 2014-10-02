@@ -59,7 +59,7 @@ Blobstore.prototype.createWriteStream = function createWriteStream(opts, cb) {
   this._createTable(function () {
     var client = new pg.Client(self.url)
     client.connect()
-    var query = copy.from('COPY %I (value, key) FROM STDIN', self.schema + '.' + self.table)
+    var query = copy.from(pgescape('COPY %I (value, key) FROM STDIN', self.schema + '.' + self.table))
     var stream = client.query(query)
     stream.on('end', function () {
       cb(null, {key: key, size: size})
