@@ -72,10 +72,6 @@ Blobstore.prototype.createWriteStream = function createWriteStream(opts, cb) {
       size = s
     })
 
-  if(key) {
-    stream.write('\t' + key)
-    stream.end()
-  } else {
     passthrough
       .pipe(lengthCount)
       .pipe(encode)
@@ -84,12 +80,11 @@ Blobstore.prototype.createWriteStream = function createWriteStream(opts, cb) {
         hash.update(chunk)
       })
       .on('end', function () {
-        key = hash.digest('hex')
+        key = key || hash.digest('hex')
         stream.write('\t' + key)
         stream.end()
-      })  
-    }
-  })
+      })
+    })
   return passthrough
 }
 
