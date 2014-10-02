@@ -18,7 +18,7 @@ function Blobstore(opts, cb) {
 
 
 Blobstore.prototype.createReadStream = function createReadStream(opts) {
-  if(typeof opts === 'string') opts.key = opts
+  if(typeof opts === 'string') opts = {key: opts}
   if(!opts.key) throw new Error('You have to specify a key')
   var passthrough = new PassThrough
   var self = this
@@ -47,7 +47,7 @@ Blobstore.prototype.createReadStream = function createReadStream(opts) {
 
 Blobstore.prototype.createWriteStream = function createWriteStream(opts, cb) {
   if (typeof opts === 'function') return this.createWriteStream({}, opts)
-  if(typeof opts === 'string') opts.key = opts
+  if(typeof opts === 'string') opts = {key: opts}
     
   var passthrough = new PassThrough
   var self = this
@@ -92,8 +92,8 @@ Blobstore.prototype.createWriteStream = function createWriteStream(opts, cb) {
   return passthrough
 }
 
-Blobstore.prototype.exists = function (metadata, cb) {
-  if(typeof opts === 'string') metadata.key = opts
+Blobstore.prototype.exists = function (opts, cb) {
+  if(typeof opts === 'string') opts = {key: opts}
   var self = this
   this._createTable(function () {
     var client = new pg.Client(self.url)
@@ -102,7 +102,7 @@ Blobstore.prototype.exists = function (metadata, cb) {
         cb(err, false)
         client.end()
       } else {
-        client.query('SELECT COUNT(*) FROM ' + self.schema + '.' + self.table + ' WHERE key=\'' + metadata.key + '\'', function (err, response) {
+        client.query('SELECT COUNT(*) FROM ' + self.schema + '.' + self.table + ' WHERE key=\'' + opts.key + '\'', function (err, response) {
           if(err) {
             cb(err, false)
             client.end()
