@@ -18,6 +18,7 @@ function Blobstore(opts, cb) {
 
 
 Blobstore.prototype.createReadStream = function createReadStream(opts) {
+  if(typeof opts === 'string') opts.key = opts
   if(!opts.key) throw new Error('You have to specify a key')
   var passthrough = new PassThrough
   var self = this
@@ -46,12 +47,13 @@ Blobstore.prototype.createReadStream = function createReadStream(opts) {
 
 Blobstore.prototype.createWriteStream = function createWriteStream(opts, cb) {
   if (typeof opts === 'function') return this.createWriteStream({}, opts)
+  if(typeof opts === 'string') opts.key = opts
     
   var passthrough = new PassThrough
   var self = this
   var size = 0
   var hash = crypto.createHash('sha1')
-  var digest = null
+  var key = opts.key
   
   this._createTable(function () {
     var client = new pg.Client(self.url)
@@ -59,7 +61,7 @@ Blobstore.prototype.createWriteStream = function createWriteStream(opts, cb) {
     var query = copy.from('COPY ' + self.schema + '.' + self.table + ' (value, key) FROM STDIN')
     var stream = client.query(query)
     stream.on('end', function () {
-      cb(null, {key: digest, size: size})
+      cb(null, {key: key, size: size})
       client.end()
     })
     
@@ -69,6 +71,10 @@ Blobstore.prototype.createWriteStream = function createWriteStream(opts, cb) {
       size = s
     })
 
+  if(key) {
+    stream.write('\t' + key)
+    stream.end()
+  } else {
     passthrough
       .pipe(lengthCount)
       .pipe(encode)
@@ -77,15 +83,17 @@ Blobstore.prototype.createWriteStream = function createWriteStream(opts, cb) {
         hash.update(chunk)
       })
       .on('end', function () {
-        digest = hash.digest('hex')
-        stream.write('\t' + digest)
+        key = hash.digest('hex')
+        stream.write('\t' + key)
         stream.end()
-      })
+      })  
+    }
   })
   return passthrough
 }
 
 Blobstore.prototype.exists = function (metadata, cb) {
+  if(typeof opts === 'string') metadata.key = opts
   var self = this
   this._createTable(function () {
     var client = new pg.Client(self.url)
